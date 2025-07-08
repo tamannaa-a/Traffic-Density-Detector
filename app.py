@@ -7,25 +7,26 @@ model = joblib.load("traffic_density_model.pkl")
 encoders = joblib.load("encoders.pkl")
 target_encoder = joblib.load("target_encoder.pkl")
 
-st.header("🚗 Predict Traffic Density")
-st.markdown("Enter traffic and environmental factors to predict traffic density.")
+st.set_page_config(page_title="Traffic Density Predictor", layout="centered")
+st.title("🚦 Predict Urban Traffic Density")
 
-with st.form("prediction_form"):
-    city = st.selectbox("City", ["New York", "Los Angeles", "Chicago"])  # Optional UI, not used for prediction
+st.markdown("Provide the following inputs to estimate traffic congestion.")
+
+with st.form("predict_form"):
     vehicle = st.selectbox("Vehicle Type", encoders['Vehicle Type'].classes_)
-    weather = st.selectbox("Weather", encoders['Weather'].classes_)
+    weather = st.selectbox("Weather Condition", encoders['Weather'].classes_)
     economy = st.selectbox("Economic Condition", encoders['Economic Condition'].classes_)
-    day = st.selectbox("Day of Week", encoders['Day Of Week'].classes_)
+    day = st.selectbox("Day of the Week", encoders['Day Of Week'].classes_)
     hour = st.slider("Hour of Day", 0, 23, 8)
     speed = st.slider("Vehicle Speed (km/h)", 0, 120, 40)
-    peak_hour = st.selectbox("Is Peak Hour?", encoders['Is Peak Hour'].classes_)
-    event_occurred = st.selectbox("Random Event Occurred?", encoders['Random Event Occurred'].classes_)
-    energy = st.slider("Energy Consumption", 0.0, 100.0, 50.0)
+    peak_hour = st.selectbox("Is it Peak Hour?", encoders['Is Peak Hour'].classes_)
+    event = st.selectbox("Random Event Occurred?", encoders['Random Event Occurred'].classes_)
+    energy = st.slider("Energy Consumption (kWh)", 0.0, 100.0, 50.0)
 
-    submit = st.form_submit_button("Predict")
+    submitted = st.form_submit_button("Predict")
 
-if submit:
-    input_dict = {
+if submitted:
+    input_data = {
         "Vehicle Type": encoders['Vehicle Type'].transform([vehicle])[0],
         "Weather": encoders['Weather'].transform([weather])[0],
         "Economic Condition": encoders['Economic Condition'].transform([economy])[0],
@@ -33,19 +34,18 @@ if submit:
         "Hour Of Day": hour,
         "Speed": speed,
         "Is Peak Hour": encoders['Is Peak Hour'].transform([peak_hour])[0],
-        "Random Event Occurred": encoders['Random Event Occurred'].transform([event_occurred])[0],
+        "Random Event Occurred": encoders['Random Event Occurred'].transform([event])[0],
         "Energy Consumption": energy,
     }
 
-    input_df = pd.DataFrame([input_dict])
+    input_df = pd.DataFrame([input_data])
     prediction = model.predict(input_df)[0]
-    predicted_label = target_encoder.inverse_transform([prediction])[0]
+    label = target_encoder.inverse_transform([prediction])[0]
 
-    # Display result
-    st.subheader("📊 Prediction Result:")
-    color_map = {"Low": "green", "Medium": "orange", "High": "red"}
+    # Color-coded result
+    color = {"Low": "green", "Medium": "orange", "High": "red"}.get(label, "gray")
     st.markdown(f"""
-        <div style='padding:10px;background-color:{color_map[predicted_label]};color:white;font-size:24px;border-radius:8px;text-align:center'>
-            Predicted Traffic Density: <b>{predicted_label}</b>
+        <div style='padding:1rem;text-align:center;background-color:{color};color:white;border-radius:10px;font-size:24px'>
+            Predicted Traffic Density: <b>{label}</b>
         </div>
     """, unsafe_allow_html=True)
