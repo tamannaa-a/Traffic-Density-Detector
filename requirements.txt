@@ -1,4 +1,4 @@
 streamlit
 pandas
-folium
-streamlit-folium
+scikit-learn
+joblib
