@@ -54,7 +54,8 @@ if submit:
 
     # Encode all features using saved encoders
     for col in encoders:
-        input_df[col] = encoders[col].transform(input_df[col])
+        if col in input_df.columns:
+            input_df[col] = encoders[col].transform(input_df[col])
 
     # Make prediction
     prediction_encoded = model.predict(input_df)[0]
