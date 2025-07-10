@@ -1,17 +1,15 @@
 import streamlit as st
-import joblib
-import numpy as np
 import pandas as pd
+import joblib
 
-# Load pre-trained model and encoders
+# Load model + encoders
 model = joblib.load("traffic_density_model.pkl")
-encoders = joblib.load("encoders.pkl")  # A dict of LabelEncoders for each categorical column
+encoders = joblib.load("encoders.pkl")
 
 st.title("🚦 Predict Urban Traffic Density")
 
-# 🔻 Dropdown for city
-city = st.selectbox("Select City", ["New York", "Los Angeles", "Chicago"])
-
+# Input UI
+city = st.selectbox("City", ["New York", "Los Angeles", "Chicago"])
 vehicle_type = st.selectbox("Vehicle Type", ["Car", "Bus", "Truck", "SUV"])
 weather = st.selectbox("Weather Condition", ["Sunny", "Rainy", "Cloudy", "Snowy"])
 economic = st.selectbox("Economic Condition", ["Stable", "Declining", "Recession"])
@@ -23,7 +21,6 @@ event = st.selectbox("Random Event Occurred?", ["True", "False"])
 energy = st.slider("Energy Consumption (kWh)", 0.0, 100.0, 50.0)
 
 if st.button("Predict"):
-    # Convert to numeric using the same encoders
     input_data = pd.DataFrame([{
         "City": city,
         "Vehicle Type": vehicle_type,
@@ -37,8 +34,10 @@ if st.button("Predict"):
         "Energy Consumption": energy
     }])
 
+    # Encode using saved encoders
     for col in encoders:
         input_data[col] = encoders[col].transform(input_data[col])
 
-    prediction = model.predict(input_data)
-    st.success(f"🚗 **Predicted Traffic Density in {city}: {prediction[0]}**")
+    prediction = model.predict(input_data)[0]
+    decoded_prediction = encoders['Traffic Density'].inverse_transform([prediction])[0]
+    st.success(f"🚗 Predicted Traffic Density in {city}: **{decoded_prediction}**")
