@@ -57,8 +57,11 @@ if submit:
         if col in input_df.columns:
             input_df[col] = encoders[col].transform(input_df[col])
 
+    # Drop 'City' before model prediction
+    model_input = input_df.drop(columns=["City"])
+
     # Make prediction
-    prediction_encoded = model.predict(input_df)[0]
+    prediction_encoded = model.predict(model_input)[0]
     prediction = target_encoder.inverse_transform([prediction_encoded])[0]
 
     st.success(f"🚗 Predicted Traffic Density in **{city}**: **{prediction}**")
