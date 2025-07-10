@@ -1,43 +1,54 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
 
-# Load model + encoders
-model = joblib.load("traffic_density_model.pkl")
-encoders = joblib.load("encoders.pkl")
-
+st.set_page_config(page_title="🚦 Predict Urban Traffic Density", layout="wide")
 st.title("🚦 Predict Urban Traffic Density")
 
-# Input UI
-city = st.selectbox("City", ["New York", "Los Angeles", "Chicago"])
-vehicle_type = st.selectbox("Vehicle Type", ["Car", "Bus", "Truck", "SUV"])
-weather = st.selectbox("Weather Condition", ["Sunny", "Rainy", "Cloudy", "Snowy"])
-economic = st.selectbox("Economic Condition", ["Stable", "Declining", "Recession"])
-day = st.selectbox("Day of the Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-hour = st.slider("Hour of Day", 0, 23, 8)
-speed = st.slider("Vehicle Speed (km/h)", 0, 120, 40)
-peak = st.selectbox("Is It Peak Hour?", ["True", "False"])
-event = st.selectbox("Random Event Occurred?", ["True", "False"])
-energy = st.slider("Energy Consumption (kWh)", 0.0, 100.0, 50.0)
+# Load model and encoders
+model = joblib.load("traffic_density_model.pkl")
+label_encoders = joblib.load("label_encoders.pkl")
 
-if st.button("Predict"):
-    input_data = pd.DataFrame([{
-        "City": city,
-        "Vehicle Type": vehicle_type,
-        "Weather": weather,
-        "Economic Condition": economic,
-        "Day Of Week": day,
-        "Hour Of Day": hour,
-        "Speed": speed,
-        "Is Peak Hour": peak,
-        "Random Event Occurred": event,
-        "Energy Consumption": energy
-    }])
+st.write("Provide the following inputs to estimate traffic congestion.")
 
-    # Encode using saved encoders
-    for col in encoders:
-        input_data[col] = encoders[col].transform(input_data[col])
+with st.form("prediction_form"):
+    col1, col2 = st.columns(2)
 
+    with col1:
+        city = st.selectbox("City", ['New York', 'Los Angeles', 'Chicago'])
+        vehicle_type = st.selectbox("Vehicle Type", ['Car', 'Bus', 'Bike'])
+        weather = st.selectbox("Weather Condition", ['Sunny', 'Rainy', 'Cloudy'])
+        economy = st.selectbox("Economic Condition", ['Stable', 'Declining', 'Growing'])
+        day_of_week = st.selectbox("Day of the Week", ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+
+    with col2:
+        hour = st.slider("Hour of Day", 0, 23, 8)
+        speed = st.slider("Vehicle Speed (km/h)", 0, 120, 40)
+        is_peak = st.selectbox("Is it Peak Hour?", [True, False])
+        event = st.selectbox("Random Event Occurred?", [True, False])
+        energy = st.slider("Energy Consumption (kWh)", 0.0, 100.0, 50.0)
+
+    submit = st.form_submit_button("Predict")
+
+if submit:
+    input_data = pd.DataFrame({
+        'City': [city],
+        'Vehicle Type': [vehicle_type],
+        'Weather': [weather],
+        'Economic Condition': [economy],
+        'Day Of Week': [day_of_week],
+        'Hour Of Day': [hour],
+        'Speed': [speed],
+        'Is Peak Hour': [is_peak],
+        'Random Event Occurred': [event],
+        'Energy Consumption': [energy]
+    })
+
+    # Encode categorical features
+    for col in label_encoders:
+        input_data[col] = label_encoders[col].transform(input_data[col])
+
+    # Predict
     prediction = model.predict(input_data)[0]
-    decoded_prediction = encoders['Traffic Density'].inverse_transform([prediction])[0]
-    st.success(f"🚗 Predicted Traffic Density in {city}: **{decoded_prediction}**")
+    st.success(f"🚗 Predicted Traffic Density: **{prediction}**")
