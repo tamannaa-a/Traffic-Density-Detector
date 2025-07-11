@@ -10,8 +10,8 @@ st.set_page_config(page_title="GridGaze – City Traffic Predictor", page_icon="
 # App branding header
 st.markdown("""
 # 🚦 **GridGaze**
-### *A new way to look at city congestion.*
-""")
+<small><i>A new way to look at city congestion.</i></small>
+""", unsafe_allow_html=True)
 
 # Load trained model and encoders
 model = joblib.load("traffic_density_model.pkl")
