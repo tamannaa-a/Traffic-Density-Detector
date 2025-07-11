@@ -73,8 +73,11 @@ if submit:
     prediction_encoded = model.predict(model_input)[0]
     prediction = target_encoder.inverse_transform([prediction_encoded])[0]
 
+    # Normalize prediction to match dictionary keys
+    normalized_prediction = prediction.strip().capitalize()
+
     # Display prediction
-    st.success(f"🚗 Predicted Traffic Density in **{city}**: **{prediction}**")
+    st.success(f"🚗 Predicted Traffic Density in **{city}**: **{normalized_prediction}**")
 
     # Traffic Risk Indicator
     risk_indicator = {
@@ -82,7 +85,8 @@ if submit:
         "Medium": ("🟡 Moderate traffic — expect some delay", "warning"),
         "High": ("🔴 Heavy traffic — consider alternative routes", "error")
     }
-    message, level = risk_indicator.get(prediction, ("⚪ Unknown traffic level", "info"))
+
+    message, level = risk_indicator.get(normalized_prediction, ("⚪ Unknown traffic level", "info"))
     getattr(st, level)(f"**Traffic Risk**: {message}")
 
     # Display on map
@@ -93,10 +97,10 @@ if submit:
     folium.CircleMarker(
         location=(lat, lon),
         radius=12,
-        color=color_map.get(prediction, "blue"),
+        color=color_map.get(normalized_prediction, "blue"),
         fill=True,
         fill_opacity=0.8,
-        popup=f"{city} - Traffic: {prediction}"
+        popup=f"{city} - Traffic: {normalized_prediction}"
     ).add_to(m)
 
     st.subheader("🗺️ Traffic Density Location")
