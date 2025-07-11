@@ -4,6 +4,15 @@ import joblib
 import folium
 from streamlit_folium import folium_static
 
+# Set page configuration
+st.set_page_config(page_title="GridGaze – City Traffic Predictor", page_icon="🚦", layout="wide")
+
+# App branding header
+st.markdown("""
+# 🚦 **GridGaze**
+### *A new way to look at city congestion.*
+""")
+
 # Load trained model and encoders
 model = joblib.load("traffic_density_model.pkl")
 encoders = joblib.load("label_encoders.pkl")
@@ -16,8 +25,7 @@ city_coords = {
     "Chicago": (41.8781, -87.6298)
 }
 
-st.set_page_config(page_title="🚦 Traffic Density Predictor with Map", layout="wide")
-st.title("📍 Predict Urban Traffic Density")
+st.subheader("📍 Predict Urban Traffic Density")
 
 with st.form("prediction_form"):
     col1, col2 = st.columns(2)
