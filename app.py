@@ -4,10 +4,10 @@ import joblib
 import folium
 from streamlit_folium import folium_static
 
-# Set Streamlit page configuration
+# Set Streamlit page config
 st.set_page_config(page_title="GridGaze – City Traffic Predictor", page_icon="🚦", layout="wide")
 
-# Centered branding
+# Centered app branding
 st.markdown("""
 <div style='text-align: center;'>
     <h1>🚦 <b>GridGaze</b></h1>
@@ -15,12 +15,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Load trained model and encoders
+# Load model and encoders
 model = joblib.load("traffic_density_model.pkl")
 encoders = joblib.load("label_encoders.pkl")
 target_encoder = joblib.load("target_encoder.pkl")
 
-# Define coordinates for supported cities
+# Coordinates for each city
 city_coords = {
     "New York": (40.7128, -74.0060),
     "Los Angeles": (34.0522, -118.2437),
@@ -29,7 +29,7 @@ city_coords = {
 
 st.subheader("📍 Predict Urban Traffic Density")
 
-# User input form
+# Form for input
 with st.form("prediction_form"):
     col1, col2 = st.columns(2)
 
@@ -49,7 +49,7 @@ with st.form("prediction_form"):
 
     submit = st.form_submit_button("Predict")
 
-# If user submits form
+# On submit
 if submit:
     input_df = pd.DataFrame([{
         "City": city,
@@ -64,21 +64,28 @@ if submit:
         "Energy Consumption": energy
     }])
 
-    # Encode features
+    # Encode input
     for col in encoders:
         if col in input_df.columns:
             input_df[col] = encoders[col].transform(input_df[col])
 
-    # Drop city for prediction
     model_input = input_df.drop(columns=["City"])
-
-    # Predict traffic density
     prediction_encoded = model.predict(model_input)[0]
     prediction = target_encoder.inverse_transform([prediction_encoded])[0]
 
+    # Display prediction
     st.success(f"🚗 Predicted Traffic Density in **{city}**: **{prediction}**")
 
-    # Map output
+    # Traffic Risk Indicator
+    risk_indicator = {
+        "Low": ("🟢 No delay expected", "success"),
+        "Medium": ("🟡 Moderate traffic — expect some delay", "warning"),
+        "High": ("🔴 Heavy traffic — consider alternative routes", "error")
+    }
+    message, level = risk_indicator.get(prediction, ("⚪ Unknown traffic level", "info"))
+    getattr(st, level)(f"**Traffic Risk**: {message}")
+
+    # Display on map
     lat, lon = city_coords[city]
     m = folium.Map(location=[lat, lon], zoom_start=10)
 
@@ -92,5 +99,5 @@ if submit:
         popup=f"{city} - Traffic: {prediction}"
     ).add_to(m)
 
-    st.subheader("🗺️ Traffic Location")
+    st.subheader("🗺️ Traffic Density Location")
     folium_static(m)
