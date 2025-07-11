@@ -4,13 +4,15 @@ import joblib
 import folium
 from streamlit_folium import folium_static
 
-# Set page configuration
+# Set Streamlit page configuration
 st.set_page_config(page_title="GridGaze – City Traffic Predictor", page_icon="🚦", layout="wide")
 
-# App branding header
+# Centered branding
 st.markdown("""
-# 🚦 **GridGaze**
-<small><i>A new way to look at city congestion.</i></small>
+<div style='text-align: center;'>
+    <h1>🚦 <b>GridGaze</b></h1>
+    <p style='font-size:16px;'><i>A new way to look at city congestion.</i></p>
+</div>
 """, unsafe_allow_html=True)
 
 # Load trained model and encoders
@@ -18,7 +20,7 @@ model = joblib.load("traffic_density_model.pkl")
 encoders = joblib.load("label_encoders.pkl")
 target_encoder = joblib.load("target_encoder.pkl")
 
-# Define coordinates for cities
+# Define coordinates for supported cities
 city_coords = {
     "New York": (40.7128, -74.0060),
     "Los Angeles": (34.0522, -118.2437),
@@ -27,6 +29,7 @@ city_coords = {
 
 st.subheader("📍 Predict Urban Traffic Density")
 
+# User input form
 with st.form("prediction_form"):
     col1, col2 = st.columns(2)
 
@@ -46,6 +49,7 @@ with st.form("prediction_form"):
 
     submit = st.form_submit_button("Predict")
 
+# If user submits form
 if submit:
     input_df = pd.DataFrame([{
         "City": city,
@@ -60,21 +64,21 @@ if submit:
         "Energy Consumption": energy
     }])
 
-    # Encode all features using saved encoders
+    # Encode features
     for col in encoders:
         if col in input_df.columns:
             input_df[col] = encoders[col].transform(input_df[col])
 
-    # Drop 'City' before model prediction
+    # Drop city for prediction
     model_input = input_df.drop(columns=["City"])
 
-    # Make prediction
+    # Predict traffic density
     prediction_encoded = model.predict(model_input)[0]
     prediction = target_encoder.inverse_transform([prediction_encoded])[0]
 
     st.success(f"🚗 Predicted Traffic Density in **{city}**: **{prediction}**")
 
-    # Show location on map
+    # Map output
     lat, lon = city_coords[city]
     m = folium.Map(location=[lat, lon], zoom_start=10)
 
@@ -88,5 +92,5 @@ if submit:
         popup=f"{city} - Traffic: {prediction}"
     ).add_to(m)
 
-    st.subheader("📍 Traffic Density Location")
+    st.subheader("🗺️ Traffic Location")
     folium_static(m)
