@@ -23,11 +23,11 @@ It helps:
 
 ## 🔍 Features
 
-- ✅ Predict **traffic density** (Low / Medium / High)  
-- ✅ Show **risk indicators** (Green: No delay, Yellow: Moderate, Red: Heavy traffic)  
-- ✅ Take user input via a clean and easy **Streamlit form**  
-- ✅ **Interactive map** highlighting the selected city  
-- ✅ Trained on a **custom synthetic dataset**  
+- Predict **traffic density** (Low / Medium / High)  
+- Show **risk indicators** (Green: No delay, Yellow: Moderate, Red: Heavy traffic)  
+- Take user input via a clean and easy **Streamlit form**  
+- **Interactive map** highlighting the selected city  
+- Trained on a **custom synthetic dataset**  
 
 ---
 
